@@ -6,6 +6,6 @@ This repository is a collection of my Computer Science course folders (notes, as
 
 Each course lives in its own folder :
 
-- [Automata theory](Automata%20theory)
+- [Automata_theory](Automata_theory)
 
 
