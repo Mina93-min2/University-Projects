@@ -1,16 +1,16 @@
 # Python
-__pycache__/
+**/__pycache__/
 *.py[cod]
 
 # Virtual environments
-.venv/
-venv/
+**/.venv/
+**/venv/
 
 # Manim renders / cache
-media/
+**/media/
 
 # VS Code
-.vscode/
+**/.vscode/
 
 # OS
 .DS_Store
