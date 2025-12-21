@@ -1,6 +1,6 @@
 # CS Courses Collection
 
-This repository is a collection of my Computer Science course folders (notes, assignments, and small projects).
+This repository is a collection of my Computer Science course projects.
 
 ## Structure
 
