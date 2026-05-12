@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta charset="utf-8" />
+    <title>Image Processing Studio - Mina Wageeh</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        /* Hide scrollbar for cleaner appearance */
+        ::-webkit-scrollbar { display: none; }
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-[#020617] flex items-center justify-center min-h-screen">
+
+<main class="relative w-[1400px] h-[750px] bg-[#0a0d1a] overflow-hidden rounded-2xl shadow-2xl border border-[#1e2440] flex">
+    
+    <aside class="w-[285px] h-full bg-[#0f1528] border-r border-[#1e2440] flex flex-col">
+    <header class="p-6 border-b border-[#1e2440]">
+        <h1 class="text-white text-2xl font-medium tracking-tight">Image processing</h1>
+    </header>
+
+
+
+
+  <div class="p-4">
+    <div onclick="document.getElementById('imageInput').click()" 
+         class="w-full h-44 border border-dashed border-[#7c3aed]/40 rounded-2xl bg-[#0f172a] flex flex-col items-center justify-center cursor-pointer hover:bg-[#1e293b] transition-all relative overflow-hidden group">
+        
+        <input type="file" id="imageInput" class="hidden" accept="image/*" onchange="previewImage(event)">
+
+        <div class="absolute inset-0 bg-[#7c3aed]/5 blur-[20px] rounded-full"></div>
+
+        <div class="relative z-10 w-[48px] h-[48px] rounded-full flex items-center justify-center mb-4 shadow-[0px_0px_20px_5px_rgba(124,58,237,0.3)] transition-transform group-hover:scale-110" 
+             style="background: linear-gradient(135deg, #7C3AED 0%, #833FE7 7.14%, #8B43E2 14.29%, #9346DC 21.43%, #9B48D7 28.57%, #A24AD1 35.71%, #AA4CCB 42.86%, #B24DC5 50%, #BB4EBF 57.14%, #C34EB9 64.29%, #CB4EB3 71.43%, #D34DAD 78.57%, #DB4CA6 85.71%, #E44AA0 92.86%, #EC4899 100%);">
+            
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 16V8M12 8L9 11M12 8L15 11" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M8 16H16" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </div>
+
+        <div class="relative z-10 text-center">
+            <span class="block text-white text-sm font-semibold tracking-wide">Upload Image</span>
+            <span class="block text-slate-500 text-[10px] mt-1 font-medium uppercase tracking-wider">PNG, JPG up to 10MB</span>
+        </div>
+    </div>
+</div>
+
+
+
+
+   <nav class="flex-grow p-4">
+    <h2 class="text-white text-2xl font-medium mb-6 px-1">Operation Type</h2>
+    
+    <div class="grid grid-cols-2 gap-x-3 gap-y-4">
+        <button onclick="showControls('point-ops')" class="bg-[#141829] text-slate-400 py-3 rounded-xl text-sm border border-[#1e2440] hover:border-slate-500 transition-colors">Point Ops</button>
+        
+        <button onclick="showControls('control')" class="bg-[#141829] text-slate-400 py-3 rounded-xl text-sm border border-[#1e2440] hover:border-slate-500 transition-colors">Control Image</button>
+        
+        <button onclick="showControls('neighbor-ops')" class="bg-[#141829] text-slate-400 py-3 rounded-xl text-sm border border-[#1e2440] hover:border-slate-500 transition-colors">Neighbor Ops</button>
+        
+        <button onclick="showControls('spatial')" class="bg-[#141829] text-slate-400 py-3 rounded-xl text-sm border border-[#1e2440] hover:border-slate-500 transition-colors">Spatial Filtering</button>
+        
+        <button onclick="showControls('restoration')" class="relative h-[50px] rounded-xl text-white text-sm font-medium overflow-hidden shadow-[0_0_20px_rgba(124,58,237,0.4)] [background:linear-gradient(117deg,rgba(124,58,237,1)_0%,rgba(236,72,153,1)_100%)]">
+            Restoration
+        </button>
+        
+        <button onclick="showControls('morphology')" class="bg-[#141829] text-slate-400 py-3 rounded-xl text-sm border border-[#1e2440] hover:border-slate-500 transition-colors">Morphological</button>
+        
+        <button onclick="showControls('segmentation')" class="bg-[#141829] text-slate-400 py-3 rounded-xl text-sm border border-[#1e2440] hover:border-slate-500 transition-colors">Segmentation</button>
+        
+        <button onclick="showControls('bonus')" class="bg-[#141829] text-[#fbbf24] py-3 rounded-xl text-sm border border-[#fbbf24]/30 hover:bg-[#fbbf24]/10 font-bold">Bonus ✨</button>
+    </div>
+</nav>
+
+
+
+
+
+    <footer class="px-4 pb-12">
+        <button id="download-results-btn" class="w-full h-24 text-white text-lg font-medium rounded-2xl transition-all shadow-lg hover:brightness-110 [background:linear-gradient(117deg,rgba(124,58,237,0.8)_0%,rgba(236,72,153,0.8)_100%)]">
+            Download Results
+        </button>
+    </footer>
+</aside>
+<section class="flex-grow flex flex-col p-6 gap-6 h-full">
+
+    <div class="flex-grow flex gap-4 h-[60%]">
+        
+        <div class="w-1/2 flex flex-col gap-2">
+            <span class="text-[10px] text-slate-500 font-bold tracking-widest uppercase ml-2">Original Image</span>
+            
+            <div class="flex-grow bg-[#141829] rounded-2xl border border-[#1e2440] flex items-center justify-center relative overflow-hidden">
+                <img id="main-preview" src="" class="hidden max-w-[95%] max-h-[95%] object-contain z-10">
+                <span id="placeholder-text" class="text-slate-600 font-medium text-sm">Waiting for upload...</span>
+            </div>
+        </div>
+
+        <div class="w-1/2 flex flex-col gap-2">
+            <span class="text-[10px] text-violet-400 font-bold tracking-widest uppercase ml-2">Live Result (Processed)</span>
+            
+            <div class="flex-grow bg-[#141829] rounded-2xl border border-violet-500/30 shadow-[0_0_20px_rgba(124,58,237,0.05)] flex items-center justify-center relative overflow-hidden">
+                <img id="result-preview" src="" class="hidden max-w-[95%] max-h-[95%] object-contain z-10">
+                <span id="result-placeholder" class="text-slate-600 font-medium text-sm italic">No processing yet</span>
+            </div>
+        </div>
+
+    </div>
+
+
+
+
+
+<div id="dynamic-controls" class="h-[250px] bg-[#0f1528] rounded-2xl border border-[#1e2440] relative overflow-hidden">
+
+
+
+    <div id="point-ops-content" class="category-content hidden">
+
+   <div id="brightness-box" 
+     class="absolute top-2 left-2 w-[140px] h-fit bg-[#1a1f35] border border-violet-500/30 rounded-xl p-2 flex flex-col gap-2 shadow-lg transition-all duration-300">
+    
+    <div class="flex items-center justify-between">
+        <h3 class="text-white text-[11px] font-bold tracking-tight">Brightness</h3>
+        <span class="text-violet-400 text-[10px]">☀️</span>
+    </div>
+
+    <div class="flex items-center gap-2">
+        <input type="range" id="brightness-slider" 
+               min="-255" max="255" value="0" 
+               oninput="document.getElementById('b-static-val').innerText = this.value"
+               class="flex-1 h-1 bg-[#0f1528] rounded-lg appearance-none cursor-pointer accent-violet-500">
+
+        <div class="w-[35px] h-[20px] bg-[#0f1528] border border-violet-500/20 rounded flex items-center justify-center">
+            <span id="b-static-val" class="text-violet-400 font-mono text-[10px] font-bold">0</span>
+        </div>
+    </div>
+
+    <div class="flex justify-between text-[6px] text-slate-600 font-bold uppercase px-0.5">
+        <span>Dark</span>
+        <span>Bright</span>
+    </div>
+</div>
+
+
+
+<div id="contrast-box" 
+     class="absolute top-[110px] left-2 w-[140px] h-fit bg-[#1a1f35] border border-violet-500/30 rounded-xl p-2 flex flex-col gap-2 shadow-lg transition-all duration-300">
+    
+    <div class="flex items-center justify-between">
+        <h3 class="text-white text-[11px] font-bold tracking-tight">Divide/Multiply</h3>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+    </div>
+
+    <div class="flex items-center gap-2">
+        <input type="range" id="contrast-slider" 
+               min="-127" max="127" value="0" 
+               oninput="document.getElementById('c-static-val').innerText = this.value"
+               class="flex-1 h-1 bg-[#0f1528] rounded-lg appearance-none cursor-pointer accent-violet-500">
+
+        <div class="w-[35px] h-[20px] bg-[#0f1528] border border-violet-500/20 rounded flex items-center justify-center">
+            <span id="c-static-val" class="text-violet-400 font-mono text-[10px] font-bold">0</span>
+        </div>
+    </div>
+
+    <div class="flex justify-between text-[6px] text-slate-600 font-bold uppercase px-0.5">
+        <span>Low</span>
+        <span>High</span>
+    </div>
+</div>
+
+
+
+
+<div id="complementary-box" 
+     class="absolute top-2 left-[200px] w-[150px] h-fit bg-[#1a1f35] border border-violet-500/30 rounded-xl p-3 flex flex-col gap-2 shadow-lg transition-all duration-300">
+    
+    <div class="flex items-center justify-between">
+        <h3 class="text-white text-[11px] font-bold tracking-tight">Complementary</h3>
+        <span class="text-violet-400 text-[10px]">🌓</span>
+    </div>
+
+    <div class="w-full h-full flex items-center justify-center">
+        <button id="invert-btn" 
+                onclick="toggleInvertState(this)"
+                class="w-full h-[30px] bg-violet-600/10 border border-violet-500/20 rounded-lg text-violet-300 text-[10px] font-bold hover:bg-violet-600/20 hover:border-violet-500/50 hover:text-white transition-all flex items-center justify-center gap-1.5 active:scale-95">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
+            Apply Invert
+        </button>
+    </div>
+</div>
+
+
+
+
+
+<div id="solarization-box" 
+     class="absolute top-[105px] left-[200px] w-[150px] h-fit bg-[#1a1f35] border border-violet-500/30 rounded-xl p-2 flex flex-col gap-0.5 shadow-lg transition-all duration-300">
+    
+    <div class="flex items-center justify-between mb-0.5">
+        <h3 class="text-white text-[8px] font-bold tracking-tight uppercase">Solarization</h3>
+        <span class="text-violet-400 text-[9px]">☀️</span>
+    </div>
+
+    <select id="solar-mode" 
+            class="w-full bg-[#0f1528] border border-violet-500/20 rounded px-1 py-0.5 text-violet-400 text-[8px] focus:outline-none cursor-pointer">
+        <option value="greater">Greater Than</option>
+        <option value="less">Less Than</option>
+    </select>
+
+    <div class="flex items-center gap-1 mt-1">
+        <div class="flex flex-col">
+            <span class="text-[6px] text-slate-500 font-bold uppercase mb-0.5 ml-0.5">Thresh</span>
+            <input type="number" id="solar-threshold" min="0" max="255" value="128" 
+                   class="w-[40px] h-[20px] bg-[#0f1528] border border-violet-500/20 rounded px-1 text-violet-400 font-mono text-[9px] focus:outline-none">
+        </div>
+
+        <button id="solar-btn" 
+                class="flex-1 h-[20px] mt-2.5 bg-violet-600/10 border border-violet-500/20 rounded text-violet-300 text-[8px] font-bold hover:bg-violet-600/20 hover:text-white transition-all active:scale-95">
+            Apply
+        </button>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+<div id="hist-stretch-box" 
+     class="absolute top-2 left-[400px] w-[160px] h-fit bg-[#1a1f35] border border-violet-500/30 rounded-xl p-2 flex flex-col gap-2 shadow-lg transition-all duration-300">
+    
+    <div class="flex items-center justify-between">
+        <h3 class="text-white text-[9px] font-bold tracking-tight uppercase">Hist. Stretching</h3>
+        <span class="text-violet-400 text-[10px]">📊</span>
+    </div>
+
+    <div class="w-full flex flex-col gap-1.5">
+        <button id="stretch-btn" 
+                class="w-full h-[30px] bg-violet-600/10 border border-violet-500/20 rounded-lg text-violet-300 text-[9px] font-bold hover:bg-violet-600/20 hover:text-white hover:border-violet-500/50 transition-all active:scale-95 flex items-center justify-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+            </svg>
+            Auto Stretch
+        </button>
+        
+        <p class="text-[7px] text-slate-600 text-center leading-tight">
+            Normalizes intensity to full [0, 255] range
+        </p>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+<div id="hist-view-box" 
+     class="absolute top-[105px] left-[400px] w-[160px] h-fit bg-[#1a1f35] border border-indigo-500/30 rounded-xl p-2 flex flex-col gap-2 shadow-lg transition-all duration-300">
+    
+    <div class="flex items-center justify-between">
+        <h3 class="text-white text-[9px] font-bold tracking-tight uppercase">Histogram</h3>
+        <span class="text-indigo-400 text-[10px]">📊</span>
+    </div>
+
+    <div class="w-full">
+        <button id="show-hist-btn" 
+                class="w-full h-[35px] bg-indigo-600/10 border border-indigo-500/20 rounded-lg text-indigo-300 text-[10px] font-bold hover:bg-indigo-600/20 hover:text-white transition-all active:scale-95 flex items-center justify-center">
+            Show Histogram
+        </button>
+    </div>
+</div>
+
+
+
+
+<div id="histogram-display-panel" 
+     class="hidden absolute top-2 left-[600px] w-[350px] h-[215px] bg-[#1a1f35] border border-indigo-500/50 rounded-2xl p-4 shadow-2xl transition-all duration-300">
+    
+    <div class="flex items-center justify-between mb-4">
+        <div class="flex flex-col">
+            <h3 class="text-white text-[12px] font-bold tracking-widest uppercase">Pixel Intensity Distribution</h3>
+            <span class="text-indigo-400 text-[8px] font-medium">Frequency of grayscale values (0-255)</span>
+        </div>
+        <span class="text-indigo-400 text-[14px]">📊</span>
+    </div>
+
+    <div class="w-full h-[120px] bg-[#0f1528] rounded-xl border border-indigo-500/10 p-2 relative">
+        <canvas id="histogram-canvas" class="w-full h-full"></canvas>
+    </div>
+
+    <div class="flex justify-between mt-3 px-1">
+        <span class="text-[8px] text-slate-500 font-bold">0 (Pure Black)</span>
+        <div class="h-[1px] flex-1 mx-4 self-center bg-indigo-500/10"></div>
+        <span class="text-[8px] text-slate-500 font-bold">255 (Pure White)</span>
+    </div>
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+<div id="control-content" class="category-content hidden w-full h-full relative p-2">
+
+    <div id="secondary-upload-box" 
+         class="absolute top-2 left-2 w-[180px] h-fit bg-[#1a1f35] border border-rose-500/30 rounded-xl p-3 flex flex-col gap-3 shadow-lg">
+        
+        <div class="flex items-center justify-between">
+            <h3 class="text-white text-[11px] font-bold uppercase tracking-tight">Second Image</h3>
+            <span class="text-rose-400">🖼️</span>
+        </div>
+
+        <div onclick="document.getElementById('secondImageInput').click()" 
+             class="w-full h-32 border border-dashed border-rose-500/20 rounded-xl bg-[#0f172a] flex flex-col items-center justify-center cursor-pointer hover:bg-rose-500/5 transition-all relative overflow-hidden group">
+            
+            <input type="file" id="secondImageInput" class="hidden" accept="image/*" onchange="previewSecondImage(event)">
+            <img id="second-preview" class="absolute inset-0 w-full h-full object-contain hidden z-10 p-2">
+            
+            <div id="second-upload-placeholder" class="flex flex-col items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-500">+</div>
+                <span class="text-[8px] text-slate-500 font-bold uppercase">Upload img2</span>
+            </div>
+        </div>
+        <p class="text-[7px] text-slate-600 text-center leading-tight italic">Note: It will be auto-resized to match Img 1</p>
+    </div>
+
+    <div id="basic-arithmetic-box" 
+         class="absolute top-2 left-[200px] w-[160px] h-fit bg-[#1a1f35] border border-violet-500/30 rounded-xl p-3 flex flex-col gap-3 shadow-lg">
+        
+        <div class="flex items-center justify-between">
+            <h3 class="text-white text-[11px] font-bold uppercase tracking-tight">Basic Ops</h3>
+            <span class="text-violet-400 text-[10px]">🔢</span>
+        </div>
+
+        <button id="add-btn" class="w-full h-[35px] bg-violet-600/10 border border-violet-500/20 rounded-lg text-violet-300 text-[10px] font-bold hover:bg-violet-600/20 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2">
+            <span>➕ Addition</span>
+        </button>
+
+        <button id="subtract-btn" class="w-full h-[35px] bg-rose-600/10 border border-rose-500/20 rounded-lg text-rose-300 text-[10px] font-bold hover:bg-rose-600/20 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2">
+            <span>➖ Subtraction</span>
+        </button>
+    </div>
+
+    <div id="blending-box" 
+         class="absolute top-2 left-[370px] w-[200px] h-fit bg-[#1a1f35] border border-emerald-500/30 rounded-xl p-3 flex flex-col gap-3 shadow-lg">
+        
+        <div class="flex items-center justify-between">
+            <h3 class="text-white text-[11px] font-bold uppercase tracking-tight">Image Blending</h3>
+            <span class="text-emerald-400">🎭</span>
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <div class="flex justify-between items-center">
+                <span class="text-[9px] text-slate-400 font-bold uppercase">Alpha (Img1)</span>
+                <span id="alpha-val" class="text-emerald-400 font-mono text-[10px]">0.6</span>
+            </div>
+            <input type="range" id="alpha-slider" min="0" max="1" step="0.1" value="0.6" 
+                   oninput="document.getElementById('alpha-val').innerText = this.value"
+                   class="w-full h-1 bg-[#0f1528] rounded-lg appearance-none cursor-pointer accent-emerald-500">
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <div class="flex justify-between items-center">
+                <span class="text-[9px] text-slate-400 font-bold uppercase">Beta (Img2)</span>
+                <span id="beta-val" class="text-emerald-400 font-mono text-[10px]">0.4</span>
+            </div>
+            <input type="range" id="beta-slider" min="0" max="1" step="0.1" value="0.4" 
+                   oninput="document.getElementById('beta-val').innerText = this.value"
+                   class="w-full h-1 bg-[#0f1528] rounded-lg appearance-none cursor-pointer accent-emerald-500">
+        </div>
+
+        <button id="blend-btn" class="w-full h-[35px] bg-emerald-600/10 border border-emerald-500/20 rounded-lg text-emerald-300 text-[10px] font-bold hover:bg-emerald-600/20 hover:text-white transition-all active:scale-95">
+            Apply Blend
+        </button>
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+<div id="neighbor-ops-content" class="category-content hidden w-full h-full relative p-2">
+
+    <div id="smoothing-box" 
+         class="absolute top-2 left-2 w-[180px] h-fit bg-[#1a1f35] border border-cyan-500/30 rounded-xl p-3 flex flex-col gap-3 shadow-lg">
+        
+        <div class="flex items-center justify-between border-b border-cyan-500/10 pb-2">
+            <h3 class="text-white text-[10px] font-bold uppercase tracking-widest">Smoothing</h3>
+            <span class="text-cyan-400">✨</span>
+        </div>
+
+        <div class="flex flex-col gap-2">
+            <button id="mean-filter-btn" 
+                    class="w-full h-[35px] bg-cyan-600/10 border border-cyan-500/20 rounded-lg text-cyan-300 text-[9px] font-bold hover:bg-cyan-600/20 hover:text-white transition-all active:scale-95">
+                Mean Filter (3x3)
+            </button>
+            <button id="median-filter-btn" 
+                    class="w-full h-[35px] bg-sky-600/10 border border-sky-500/20 rounded-lg text-sky-300 text-[9px] font-bold hover:bg-sky-600/20 hover:text-white transition-all active:scale-95">
+                Median Filter (3x3)
+            </button>
+        </div>
+        <p class="text-[7px] text-slate-500 text-center leading-tight">Removes noise by averaging or finding the middle value.</p>
+    </div>
+
+    <div id="order-stats-box" 
+         class="absolute top-2 left-[200px] w-[180px] h-fit bg-[#1a1f35] border border-teal-500/30 rounded-xl p-3 flex flex-col gap-3 shadow-lg">
+        
+        <div class="flex items-center justify-between border-b border-teal-500/10 pb-2">
+            <h3 class="text-white text-[10px] font-bold uppercase tracking-widest">Order Stats</h3>
+            <span class="text-teal-400">📊</span>
+        </div>
+
+        <div class="flex flex-col gap-2">
+            <button id="min-filter-btn" 
+                    class="w-full h-[35px] bg-teal-600/10 border border-teal-500/20 rounded-lg text-teal-300 text-[9px] font-bold hover:bg-teal-600/20 hover:text-white transition-all">
+                Min Filter (3x3)
+            </button>
+            <button id="max-filter-btn" 
+                    class="w-full h-[35px] bg-emerald-600/10 border border-emerald-500/20 rounded-lg text-emerald-300 text-[9px] font-bold hover:bg-emerald-600/20 hover:text-white transition-all">
+                Max Filter (3x3)
+            </button>
+        </div>
+        <p class="text-[7px] text-slate-500 text-center leading-tight">Picks extreme values (Darkest/Brightest) in neighborhood.</p>
+    </div>
+
+    <div id="neighbor-config" 
+         class="absolute top-2 left-[395px] w-[160px] h-fit bg-[#1a1f35] border border-slate-500/30 rounded-xl p-3 flex flex-col gap-3 shadow-lg">
+        
+        <div class="flex items-center justify-between border-b border-slate-500/10 pb-2">
+            <h3 class="text-white text-[9px] font-bold uppercase">Boundary Control</h3>
+            <span class="text-slate-500 text-[10px]">⚙️</span>
+        </div>
+
+        <div class="flex items-center justify-between px-1">
+            <label class="text-[9px] text-slate-400 font-bold uppercase cursor-pointer" for="padding-toggle">Zero Padding</label>
+            <input type="checkbox" id="padding-toggle" checked 
+                   class="w-4 h-4 rounded bg-[#0f1528] border-slate-500/50 text-cyan-500 focus:ring-0 cursor-pointer">
+        </div>
+        
+        <div class="p-2 bg-[#0f1528] rounded-lg border border-slate-500/10">
+            <p class="text-[7px] text-slate-500 leading-tight italic">
+                Enabled: Keeps image size 1:1 by adding 0s to borders.
+            </p>
+        </div>
+    </div>
+
+</div>
+
+
+
+
+
+
+
+<div id="spatial-content" class="category-content hidden w-full h-full relative p-2">
+
+    <div id="average-box" 
+         class="absolute top-2 left-2 w-[180px] h-fit bg-[#1a1f35] border border-blue-500/30 rounded-xl p-3 flex flex-col gap-3 shadow-lg">
+        <div class="flex items-center justify-between border-b border-blue-500/10 pb-2">
+            <h3 class="text-white text-[10px] font-bold uppercase tracking-widest">Average Blur</h3>
+            <span class="text-blue-400">🌫️</span>
+        </div>
+        
+        <div class="flex flex-col gap-1">
+            <span class="text-[8px] text-slate-500 uppercase font-bold">Kernel Size</span>
+            <select id="average-size" class="w-full bg-[#0f1528] border border-blue-500/20 rounded p-1 text-blue-300 text-[10px] focus:outline-none cursor-pointer">
+                <option value="3">3 x 3 (Light)</option>
+                <option value="5">5 x 5 (Medium)</option>
+                <option value="7">7 x 7 (Heavy)</option>
+                <option value="11">11 x 11 (Extreme)</option>
+            </select>
+        </div>
+
+        <button id="average-spatial-btn" class="w-full h-[32px] bg-blue-600/10 border border-blue-500/20 rounded-lg text-blue-300 text-[9px] font-bold hover:bg-blue-600/20 transition-all active:scale-95">
+            Apply Average Blur
+        </button>
+    </div>
+
+    <div id="gaussian-box" 
+         class="absolute top-2 left-[200px] w-[200px] h-fit bg-[#1a1f35] border border-indigo-500/30 rounded-xl p-3 flex flex-col gap-3 shadow-lg">
+        <div class="flex items-center justify-between border-b border-indigo-500/10 pb-2">
+            <h3 class="text-white text-[10px] font-bold uppercase tracking-widest">Gaussian Blur</h3>
+            <span class="text-indigo-400">🧠</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+            <div class="flex flex-col gap-1">
+                <span class="text-[8px] text-slate-500 uppercase font-bold">Size</span>
+                <input type="number" id="gaussian-size" value="3" step="2" min="3" class="w-full bg-[#0f1528] border border-indigo-500/20 rounded p-1 text-indigo-300 text-[10px] outline-none">
+            </div>
+            <div class="flex flex-col gap-1">
+                <span class="text-[8px] text-slate-500 uppercase font-bold">Sigma (σ)</span>
+                <input type="number" id="gaussian-sigma" value="1.0" step="0.1" min="0.1" class="w-full bg-[#0f1528] border border-indigo-500/20 rounded p-1 text-indigo-300 text-[10px] outline-none">
+            </div>
+        </div>
+
+        <button id="gaussian-spatial-btn" class="w-full h-[32px] bg-indigo-600/10 border border-indigo-500/20 rounded-lg text-indigo-300 text-[9px] font-bold hover:bg-indigo-600/20 transition-all active:scale-95">
+            Apply Gaussian Filter
+        </button>
+        <p class="text-[7px] text-slate-600 italic">Gaussian preserves edges better than Average Blur.</p>
+    </div>
+
+    <div class="absolute top-2 left-[410px] w-[150px] h-fit bg-[#0f1528]/50 border border-slate-700 rounded-xl p-3">
+        <h4 class="text-slate-400 text-[8px] font-bold uppercase mb-2">How it works:</h4>
+        <p class="text-[7px] text-slate-500 leading-relaxed">
+            These filters use <b>Convolution</b> to slide a mathematical mask over the image. 
+            <br><br>
+            Average uses a uniform mask, while Gaussian uses a normal distribution for smoother results.
+        </p>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+<div id="restoration-content" class="category-content hidden w-full h-full relative p-2">
+
+    <div id="noise-box" 
+         class="absolute top-2 left-2 w-[180px] h-fit bg-[#1a1f35] border border-rose-500/30 rounded-xl p-3 flex flex-col gap-3 shadow-lg">
+        <div class="flex items-center justify-between border-b border-rose-500/10 pb-2">
+            <h3 class="text-white text-[10px] font-bold uppercase tracking-widest">Add Noise</h3>
+            <span class="text-rose-400">🧂</span>
+        </div>
+        
+        <div class="flex flex-col gap-1">
+            <div class="flex justify-between items-center">
+                <span class="text-[8px] text-slate-500 uppercase font-bold">Noise Ratio</span>
+                <span id="noise-ratio-val" class="text-rose-400 font-mono text-[10px]">0.05</span>
+            </div>
+            <input type="range" id="noise-slider" min="0.01" max="0.5" step="0.01" value="0.05" 
+                   oninput="document.getElementById('noise-ratio-val').innerText = this.value"
+                   class="w-full h-1 bg-[#0f1528] rounded-lg appearance-none cursor-pointer accent-rose-500">
+        </div>
+
+        <button id="add-noise-btn" class="w-full h-[32px] bg-rose-600/10 border border-rose-500/20 rounded-lg text-rose-300 text-[9px] font-bold hover:bg-rose-600/20 transition-all active:scale-95">
+            Add Salt & Pepper
+        </button>
+    </div>
+
+    <div id="snr-box" 
+         class="absolute top-2 left-[200px] w-[200px] h-fit bg-[#1a1f35] border border-amber-500/30 rounded-xl p-3 flex flex-col gap-3 shadow-lg">
+        <div class="flex items-center justify-between border-b border-amber-500/10 pb-2">
+            <h3 class="text-white text-[10px] font-bold uppercase tracking-widest">Quality Metric</h3>
+            <span class="text-amber-400">📏</span>
+        </div>
+
+        <div class="p-3 bg-[#0f1528] rounded-xl border border-amber-500/10 flex flex-col items-center justify-center gap-1">
+            <span class="text-slate-500 text-[8px] uppercase font-bold">SNR Value</span>
+            <span id="snr-result-text" class="text-amber-400 font-mono text-xl font-bold">-- dB</span>
+        </div>
+
+        <button id="calculate-snr-btn" class="w-full h-[35px] bg-amber-600/10 border border-amber-500/20 rounded-lg text-amber-300 text-[9px] font-bold hover:bg-amber-600/20 transition-all active:scale-95">
+            Compare with Img 2 (SNR)
+        </button>
+        <p class="text-[6px] text-slate-600 text-center italic">Higher SNR means better restoration quality.</p>
+    </div>
+
+    <div id="restoration-upload-area" class="absolute top-2 left-[410px] w-[160px]">
+        <p class="text-[8px] text-slate-500 uppercase font-bold mb-2 ml-1">Ground Truth (Img 2)</p>
+         <div onclick="document.getElementById('secondImageInput').click()" 
+             class="w-full h-32 border border-dashed border-slate-700 rounded-xl bg-[#0f172a] flex flex-col items-center justify-center cursor-pointer hover:bg-[#1e293b] transition-all relative overflow-hidden group">
+            <img id="second-preview-restoration" class="absolute inset-0 w-full h-full object-contain hidden z-10 p-2">
+            <div id="restoration-placeholder" class="text-center">
+                <span class="text-slate-600 text-xs">+</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 6. Morphological Operations Container -->
+<div id="morphology-content" class="category-content hidden w-full h-full relative p-2">
+
+    <!-- Control panel for Structuring Element -->
+    <div id="morph-config" 
+         class="absolute top-2 left-2 w-[180px] h-fit bg-[#1a1f35] border border-purple-500/30 rounded-xl p-3 flex flex-col gap-3 shadow-lg">
+        <div class="flex items-center justify-between border-b border-purple-500/10 pb-2">
+            <h3 class="text-white text-[10px] font-bold uppercase tracking-widest">Element Config</h3>
+            <span class="text-purple-400">📏</span>
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <div class="flex justify-between items-center">
+                <span class="text-[8px] text-slate-500 uppercase font-bold">Square Size</span>
+                <span id="morph-size-val" class="text-purple-400 font-mono text-[10px]">5</span>
+            </div>
+            <input type="range" id="morph-size-slider" min="3" max="21" step="2" value="5" 
+                   oninput="document.getElementById('morph-size-val').innerText = this.value"
+                   class="w-full h-1 bg-[#0f1528] rounded-lg appearance-none cursor-pointer accent-purple-500">
+        </div>
+        <p class="text-[7px] text-slate-500 italic">Odd numbers (3, 5, 7...) work best for symmetric operations.</p>
+    </div>
+
+    <!-- Basic Operations -->
+    <div class="absolute top-2 left-[200px] grid grid-cols-2 gap-3 w-[360px]">
+        <!-- Erosion & Dilation -->
+        <div class="bg-[#1a1f35] border border-indigo-500/20 rounded-xl p-3 flex flex-col gap-2 shadow-lg">
+            <h4 class="text-white text-[9px] font-bold uppercase mb-1">Basic Ops</h4>
+            <button id="erosion-btn" class="w-full h-[32px] bg-indigo-600/10 border border-indigo-500/20 rounded-lg text-indigo-300 text-[9px] font-bold hover:bg-indigo-600/20 transition-all">Erosion (Shrink)</button>
+            <button id="dilation-btn" class="w-full h-[32px] bg-purple-600/10 border border-purple-500/20 rounded-lg text-purple-300 text-[9px] font-bold hover:bg-purple-600/20 transition-all">Dilation (Expand)</button>
+        </div>
+
+        <!-- Opening & Closing -->
+        <div class="bg-[#1a1f35] border border-pink-500/20 rounded-xl p-3 flex flex-col gap-2 shadow-lg">
+            <h4 class="text-white text-[9px] font-bold uppercase mb-1">Advanced Ops</h4>
+            <button id="opening-btn" class="w-full h-[32px] bg-pink-600/10 border border-pink-500/20 rounded-lg text-pink-300 text-[9px] font-bold hover:bg-pink-600/20 transition-all">Opening (Remove Noise)</button>
+            <button id="closing-btn" class="w-full h-[32px] bg-rose-600/10 border border-rose-500/20 rounded-lg text-rose-300 text-[9px] font-bold hover:bg-rose-600/20 transition-all">Closing (Fill Holes)</button>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 7. Segmentation Container -->
+<div id="segmentation-content" class="category-content hidden w-full h-full relative p-2">
+
+    <!-- Otsu Thresholding Box -->
+    <div id="otsu-box" 
+         class="absolute top-2 left-2 w-[190px] h-fit bg-[#1a1f35] border border-emerald-500/30 rounded-xl p-3 flex flex-col gap-3 shadow-lg">
+        <div class="flex items-center justify-between border-b border-emerald-500/10 pb-2">
+            <h3 class="text-white text-[10px] font-bold uppercase tracking-widest">Auto Threshold</h3>
+            <span class="text-emerald-400">🤖</span>
+        </div>
+        
+        <p class="text-[7px] text-slate-500 leading-relaxed">
+            <b>Otsu's Method</b> automatically finds the best threshold to separate foreground from background.
+        </p>
+
+        <button id="otsu-btn" class="w-full h-[32px] bg-emerald-600/10 border border-emerald-500/20 rounded-lg text-emerald-300 text-[9px] font-bold hover:bg-emerald-600/20 transition-all active:scale-95">
+            Run Otsu Segmentation
+        </button>
+    </div>
+
+    <!-- Dithering Box -->
+    <div id="dithering-box" 
+         class="absolute top-2 left-[210px] w-[210px] h-fit bg-[#1a1f35] border border-cyan-500/30 rounded-xl p-3 flex flex-col gap-3 shadow-lg">
+        <div class="flex items-center justify-between border-b border-cyan-500/10 pb-2">
+            <h3 class="text-white text-[10px] font-bold uppercase tracking-widest">Dithering</h3>
+            <span class="text-cyan-400">🖼️</span>
+        </div>
+
+        <p class="text-[7px] text-slate-500 leading-relaxed">
+            <b>Floyd-Steinberg</b> algorithm represents grayscale details using only black and white dots (Error Diffusion).
+        </p>
+
+        <button id="dithering-btn" class="w-full h-[32px] bg-cyan-600/10 border border-cyan-500/20 rounded-lg text-cyan-300 text-[9px] font-bold hover:bg-cyan-600/20 transition-all active:scale-95">
+            Apply Dithering
+        </button>
+    </div>
+
+    <!-- Info Box -->
+    <div class="absolute bottom-2 left-2 right-2 p-2 bg-[#0f1528]/50 border border-slate-800 rounded-lg">
+        <p class="text-[7px] text-slate-600 text-center uppercase tracking-tighter">
+            Segmentation is the first step in most Computer Vision pipelines for Object Detection.
+        </p>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+<!-- 8. Gold Bonus Section -->
+<div id="bonus-content" class="category-content hidden w-full h-full p-4">
+    <div class="grid grid-cols-2 gap-4">
+        
+        <!-- Sobel Button -->
+        <button id="sobel-btn" class="gold-btn group">
+            <span class="text-xl group-hover:scale-125 transition-transform">🔍</span>
+            <div class="text-left">
+                <div class="font-bold text-[10px] uppercase">Sobel Operator</div>
+                <div class="text-[7px] opacity-70">Mathematical Edge Gradients</div>
+            </div>
+        </button>
+
+        <!-- Histogram Equalization -->
+        <button id="hist-eq-btn" class="gold-btn group">
+            <span class="text-xl group-hover:scale-125 transition-transform">📊</span>
+            <div class="text-left">
+                <div class="font-bold text-[10px] uppercase">Histogram Eq</div>
+                <div class="text-[7px] opacity-70">Global Contrast Boost</div>
+            </div>
+        </button>
+
+        <!-- Adaptive Threshold -->
+        <button id="adaptive-btn" class="gold-btn group">
+            <span class="text-xl group-hover:scale-125 transition-transform">💡</span>
+            <div class="text-left">
+                <div class="font-bold text-[10px] uppercase">Adaptive Thresh</div>
+                <div class="text-[7px] opacity-70">Local Light Segmentation</div>
+            </div>
+        </button>
+
+        <!-- K-Means (AI) -->
+        <button id="kmeans-btn" class="gold-btn group">
+            <span class="text-xl group-hover:scale-125 transition-transform">🤖</span>
+            <div class="text-left">
+                <div class="font-bold text-[10px] uppercase">K-Means (AI)</div>
+                <div class="text-[7px] opacity-70">Unsupervised ML Clustering</div>
+            </div>
+        </button>
+
+        <!-- Canny - The Professional Standard -->
+        <button id="canny-btn" class="gold-btn col-span-2 border-2 border-yellow-400 shadow-[0_0_15px_rgba(251,191,36,0.2)]">
+            <span class="text-xl">⚔️</span>
+            <div class="text-left">
+                <div class="font-bold text-[11px] uppercase tracking-wider">Canny Edge Detection</div>
+                <div class="text-[8px] opacity-80 italic text-yellow-200">Multi-stage Professional Edge Pipeline</div>
+            </div>
+        </button>
+    </div>
+</div>
+
+<style>
+/* Golden Bonus Buttons Styling */
+.gold-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; /* 3 in tailwind */
+    background: linear-gradient(to bottom right, rgba(202, 138, 4, 0.2), rgba(120, 53, 15, 0.4));
+    border: 1px solid rgba(234, 179, 8, 0.4);
+    border-radius: 1rem; /* 2xl */
+    padding: 1rem;
+    color: #fbbf24; /* yellow-400 */
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.gold-btn:hover {
+    border-color: #fbbf24;
+    background: linear-gradient(to bottom right, rgba(202, 138, 4, 0.3), rgba(120, 53, 15, 0.5));
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
+}
+
+.gold-btn:active {
+    transform: scale(0.95);
+}
+</style>
+
+
+
+
+
+
+</div>
+
+
+
+</section>
+
+</main>
+
+</body>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</html>
