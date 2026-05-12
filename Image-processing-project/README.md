@@ -2,9 +2,15 @@
 
 A comprehensive **Flask web application** for real-time image processing with multiple filters, effects, and advanced algorithms. Built with Python backend (Flask + OpenCV) and modern web frontend (Tailwind CSS + JavaScript).
 
-## 🖼️ Screenshot
+## 🖼️ Screenshots
 
-![Image Processing Studio](./screenshots/demo.png)
+### Live Application Interface
+![Website Screenshot](./screenshots/demo.png)
+
+### Project Presentation
+![Project Slide 1](./screenshots/project1.png)
+
+![Project Slide 2](./screenshots/project2.png)
 
 ## ✨ Features
 
