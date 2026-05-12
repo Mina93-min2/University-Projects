@@ -4,9 +4,6 @@ A comprehensive **Flask web application** for real-time image processing with mu
 
 ## 🖼️ Screenshots
 
-### Live Application Interface
-![Website Screenshot](./screenshots/demo.png)
-
 ### Project Presentation
 ![Project Slide 1](./screenshots/project1.png)
 
